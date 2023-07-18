@@ -1,25 +1,18 @@
-import httpStatus from 'http-status';
-import ApiError from '../../../errors/ApiError';
-import { User } from '../user/user.model';
-import { ICow } from './cow.interface';
-import { Cow } from './cow.model';
+import { IGenericResponse } from '../../../interfaces/common';
+import { IBook } from './book.interface';
+import { Book } from './book.model';
 
-const createBook = async (cow: ICow): Promise<ICow | null> => {
-  const userData = await User.findById(cow.seller);
-
-  if (userData) {
-    if (userData.role !== 'seller') {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Not a seller');
-    }
-  }
-
-  // default label
-  if (!cow.label) {
-    cow.label = 'for sale';
-  }
-
-  const result = await Cow.create(cow);
+const createBook = async (book: IBook): Promise<IBook | null> => {
+  const result = await Book.create(book);
   return result;
+};
+
+const getAllBooks = async (): Promise<IGenericResponse<IBook[]>> => {
+  const result = await Book.find({});
+
+  return {
+    data: result,
+  };
 };
 
 // const getAllCows = async (
@@ -90,11 +83,11 @@ const createBook = async (cow: ICow): Promise<ICow | null> => {
 //   };
 // };
 
-// const getSingleCow = async (id: string): Promise<ICow | null> => {
-//   const result = await Cow.findById(id);
+const getSingleBook = async (id: string): Promise<IBook | null> => {
+  const result = await Book.findById(id);
 
-//   return result;
-// };
+  return result;
+};
 
 // const updateCow = async (
 //   token: string,
@@ -150,6 +143,8 @@ const createBook = async (cow: ICow): Promise<ICow | null> => {
 
 export const BookService = {
   createBook,
+  getAllBooks,
+  getSingleBook
   // getAllCows,
   // getSingleCow,
   // updateCow,

@@ -1,28 +1,24 @@
 import express from 'express';
-import { ENUM_USER_ROLE } from '../../../enums/user';
-import auth from '../../middlewares/auth';
-import validateRequest from '../../middlewares/validateRequest';
-import { CowController } from './cow.controller';
-import { CowValidation } from './cow.validation';
+import { BookController } from './book.controller';
 
 const router = express.Router();
 
 // Create Cow
-router.post('/', auth(ENUM_USER_ROLE.SELLER), BookController.createCow);
+router.post('/create-book', BookController.createBook);
 
-// // Get All cows
-// router.get(
-//   '/',
-//   auth(ENUM_USER_ROLE.SELLER, ENUM_USER_ROLE.BUYER, ENUM_USER_ROLE.ADMIN),
-//   CowController.getAllCows
-// );
+// Get All cows
+router.get(
+  '/all-books',
+  // auth(ENUM_USER_ROLE.SELLER, ENUM_USER_ROLE.BUYER, ENUM_USER_ROLE.ADMIN),
+  BookController.getAllBooks
+);
 
-// // Get single cow
-// router.get(
-//   '/:id',
-//   auth(ENUM_USER_ROLE.SELLER, ENUM_USER_ROLE.BUYER, ENUM_USER_ROLE.ADMIN),
-//   CowController.getSingleCow
-// );
+// Get single cow
+router.get(
+  '/:id',
+  // auth(ENUM_USER_ROLE.SELLER, ENUM_USER_ROLE.BUYER, ENUM_USER_ROLE.ADMIN),
+  BookController.getSingleBook
+);
 
 // // Delete an cow
 // router.delete('/:id', auth(ENUM_USER_ROLE.SELLER), CowController.deleteCow);
