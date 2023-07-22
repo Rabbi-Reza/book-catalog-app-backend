@@ -1,152 +1,114 @@
-import { IGenericResponse } from '../../../interfaces/common';
-import { IBook } from './book.interface';
-import { Book } from './book.model';
+import { IGenericResponse } from '../../../interfaces/common'
+import { bookFilterableFields } from './book.constant'
+import { IBook, IBookFilters } from './book.interface'
+import { Book } from './book.model'
 
 const createBook = async (book: IBook): Promise<IBook | null> => {
-  const result = await Book.create(book);
-  return result;
-};
+  const createdBook = await Book.create(book)
 
-const getAllBooks = async (): Promise<IGenericResponse<IBook[]>> => {
-  const result = await Book.find({});
+  if (!createBook) {
+    throw new Error('Failed to create book!')
+  }
+  return createdBook
+}
+
+const getRecentlyAddedBooks = async (): Promise<IGenericResponse<IBook[]>> => {
+  const result = await Book.find({}).sort({ createdAt: -1 }).limit(10).exec()
+
+  const count = await Book.countDocuments()
 
   return {
+    meta: {
+      count,
+    },
     data: result,
-  };
-};
+  }
+}
 
-// const getAllCows = async (
-//   filters: ICowFilters,
-//   paginationOptions: IPaginationOptions
-// ): Promise<IGenericResponse<ICow[]>> => {
-//   const { page, limit, skip, sortBy, sortOrder } =
-//     paginationHelpers.calculatePagination(paginationOptions);
+const getAllBooks = async (
+  filters: IBookFilters
+): Promise<IGenericResponse<IBook[]>> => {
+  const { searchTerm, ...filtersData } = filters
 
-//   const sortConditions: { [key: string]: SortOrder } = {};
+  const andConditions = []
 
-//   if (sortBy && sortOrder) {
-//     sortConditions[sortBy] = sortOrder;
-//   }
+  if (searchTerm) {
+    andConditions.push({
+      $or: bookFilterableFields.map(field => ({
+        [field]: {
+          $regex: searchTerm,
+          $options: 'i',
+        },
+      })),
+    })
+  }
 
-//   const { searchTerm, minPrice, maxPrice, ...filtersData } = filters;
+  if (Object.keys(filtersData).length) {
+    andConditions.push({
+      $and: Object.entries(filtersData).map(([field, value]) => ({
+        [field]: value,
+      })),
+    })
+  }
 
-//   const andConditions = [];
+  const whereConditions =
+    andConditions.length > 0 ? { $and: andConditions } : {}
 
-//   if (searchTerm) {
-//     andConditions.push({
-//       $or: cowSearchableFields.map(field => ({
-//         [field]: {
-//           $regex: searchTerm,
-//           $options: 'i',
-//         },
-//       })),
-//     });
-//   }
+  const result = await Book.find(whereConditions)
+  const count = await Book.countDocuments()
 
-//   if (minPrice) {
-//     andConditions.push({
-//       price: { $gte: minPrice },
-//     });
-//   }
-
-//   if (maxPrice) {
-//     andConditions.push({
-//       price: { $lte: maxPrice },
-//     });
-//   }
-
-//   if (Object.keys(filtersData).length) {
-//     andConditions.push({
-//       $and: Object.entries(filtersData).map(([field, value]) => ({
-//         [field]: value,
-//       })),
-//     });
-//   }
-
-//   const whereConditions =
-//     andConditions.length > 0 ? { $and: andConditions } : {};
-
-//   const result = await Cow.find(whereConditions)
-//     .sort(sortConditions)
-//     .skip(skip)
-//     .limit(limit);
-
-//   const count = await Cow.countDocuments(whereConditions);
-
-//   return {
-//     meta: {
-//       page,
-//       limit,
-//       count,
-//     },
-//     data: result,
-//   };
-// };
+  return {
+    meta: {
+      count,
+    },
+    data: result,
+  }
+}
 
 const getSingleBook = async (id: string): Promise<IBook | null> => {
-  const result = await Book.findById(id);
+  const result = await Book.findById(id)
+  return result
+}
 
-  return result;
-};
+const updateBook = async (
+  id: string,
+  payload: Partial<IBook>
+): Promise<IBook | null> => {
+  const result = await Book.findOneAndUpdate({ _id: id }, payload, {
+    new: true,
+  })
+  return result
+}
 
-// const updateCow = async (
-//   token: string,
-//   id: string,
-//   payload: Partial<ICow>
-// ): Promise<ICow | null> => {
-//   // Verify token
-//   let verifiedUser = null;
+const deleteBook = async (id: string): Promise<IBook | null> => {
+  const result = await Book.findByIdAndDelete(id)
+  return result
+}
 
-//   verifiedUser = jwtHelpers.verifiedToken(token, config.jwt.secret as Secret);
+const getSearchResult = async (keyword: string): Promise<IBook[]> => {
+  const result = await Book.find({
+    $or: bookFilterableFields.map(field => ({
+      [field]: {
+        $regex: keyword,
+        $options: 'i',
+      },
+    })),
+  })
+  return result
+}
 
-//   const isExist = await Cow.findOne({ _id: id });
+const getReviewFromBook = async (id: string): Promise<IBook | null> => {
+  const result = await Book.findById(id)
+  return result
+}
 
-//   // Check if user with id existed in DB
-//   if (!isExist) {
-//     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-//   }
-
-//   if (!(verifiedUser?.userId == isExist?.seller.toString())) {
-//     throw new ApiError(httpStatus.FORBIDDEN, 'You are not authorized');
-//   }
-
-//   const { ...userData } = payload;
-//   const updatedCowData: Partial<ICow> = { ...userData };
-
-//   const result = await Cow.findOneAndUpdate({ _id: id }, updatedCowData, {
-//     new: true,
-//   });
-
-//   return result;
-// };
-
-// const deleteCow = async (token: string, id: string): Promise<ICow | null> => {
-//   // Verify token
-//   let verifiedUser = null;
-
-//   verifiedUser = jwtHelpers.verifiedToken(token, config.jwt.secret as Secret);
-
-//   const isExist = await Cow.findOne({ _id: id });
-
-//   if (!isExist) {
-//     throw new ApiError(httpStatus.NOT_FOUND, 'No Cow data found!');
-//   }
-
-//   if (!(verifiedUser?.userId == isExist?.seller.toString())) {
-//     throw new ApiError(httpStatus.FORBIDDEN, 'You are not authorized');
-//   }
-
-//   const result = await Cow.findByIdAndDelete(id);
-
-//   return result;
-// };
-
-export const BookService = {
+export default {
   createBook,
+  getRecentlyAddedBooks,
   getAllBooks,
-  getSingleBook
-  // getAllCows,
-  // getSingleCow,
-  // updateCow,
-  // deleteCow,
-};
+  getSingleBook,
+  updateBook,
+  deleteBook,
+  getReviewFromBook,
+  getSearchResult,
+}

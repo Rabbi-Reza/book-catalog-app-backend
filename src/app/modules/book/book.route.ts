@@ -1,34 +1,34 @@
-import express from 'express';
-import { BookController } from './book.controller';
+import express from 'express'
+import validateRequest from '../../middlewares/validateRequest'
+import { BookController } from './book.controller'
+import { BookValidation } from './book.validation'
+const router = express.Router()
 
-const router = express.Router();
+router.post(
+  '/add-book',
+  validateRequest(BookValidation.createBookZodSchema),
+  BookController.createBook
+)
 
-// Create Cow
-router.post('/create-book', BookController.createBook);
+router.get('/recently-added-books', BookController.getRecentlyAddedBooks)
 
-// Get All cows
-router.get(
-  '/all-books',
-  // auth(ENUM_USER_ROLE.SELLER, ENUM_USER_ROLE.BUYER, ENUM_USER_ROLE.ADMIN),
-  BookController.getAllBooks
-);
+router.get('/books', BookController.getAllBooks)
 
-// Get single cow
-router.get(
-  '/:id',
-  // auth(ENUM_USER_ROLE.SELLER, ENUM_USER_ROLE.BUYER, ENUM_USER_ROLE.ADMIN),
-  BookController.getSingleBook
-);
+router.get('/book/:id', BookController.getSingleBook)
 
-// // Delete an cow
-// router.delete('/:id', auth(ENUM_USER_ROLE.SELLER), CowController.deleteCow);
+router.patch(
+  '/edit-book/:id',
+  validateRequest(BookValidation.updateBookZodSchema),
+  BookController.updateBook
+)
 
-// // Update a cow
-// router.patch(
-//   '/:id',
-//   validateRequest(CowValidation.updateCowZodSchema),
-//   auth(ENUM_USER_ROLE.SELLER),
-//   CowController.updateCow
-// );
+router.delete('/delete-book/:id', BookController.deleteBook)
 
-export const BookRoutes = router;
+router.get('/books/search', BookController.getSearchResult)
+
+router.post('/review/:id', BookController.addReviewToBook)
+
+router.get('/review/:id', BookController.getReviewFromBook)
+
+
+export const BookRoutes = router

@@ -1,12 +1,24 @@
-import { Model } from "mongoose";
+import { Model } from 'mongoose'
+
+export type IReview = {
+  review: string
+}
 
 export type IBook = {
-  title: string;
-  author: string;
-  genre: string;
-  publicationDate: string;
-  reviews?: string[];
-  uploader: string;
-};
+  _id?: number
+  title: string
+  image: string
+  author: string
+  genre: string
+  publicationYear: number
+  quantity?: number
+  user?: string
+  reviews?: IReview[]
+}
 
-export type BookModel = Model<IBook, Record<string, number>>;
+
+export type IBookFilters = {
+  searchTerm?: string
+}
+
+export type BookModel = Model<IBook>

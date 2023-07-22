@@ -1,30 +1,26 @@
-/* eslint-disable no-console */
-import cors from 'cors';
-import express, { Application, NextFunction, Request, Response } from 'express';
-import httpStatus from 'http-status';
-import globalErrorHandler from './app/middlewares/globalErrorHandler';
-import routes from './app/routes';
-import cookieParser from 'cookie-parser';
+import cors from 'cors'
+import express, { Application, NextFunction, Request, Response } from 'express'
+import httpStatus from 'http-status'
+import globalErrorHandler from './app/middlewares/globalErrorHandler'
+import routes from './app/routes'
 
-const app: Application = express();
+import cookieParser from 'cookie-parser'
 
-app.use(cors());
-app.use(cookieParser());
+const app: Application = express()
+
+app.use(cors())
+app.use(cookieParser())
 
 //parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
-app.use('/api/v1/', routes);
+app.use('/api/v1', routes)
 
-// For Root route
-app.get('/', (req, res) => {
-  res.send('Server is Running...');
-});
+//global error handler
+app.use(globalErrorHandler)
 
-app.use(globalErrorHandler);
-
-// handle not found
+//handle not found
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(httpStatus.NOT_FOUND).json({
     success: false,
@@ -35,8 +31,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
         message: 'API Not Found',
       },
     ],
-  });
-  next();
-});
+  })
+  next()
+})
 
-export default app;
+export default app
